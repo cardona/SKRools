@@ -170,6 +170,8 @@ public final class DefaultNetworkErrorLogger: NetworkErrorLogger {
         guard let data = data else { return }
         if let dataDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
             print("responseData: \(String(describing: dataDict))")
+        } else if let dataDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
+            print("responseData: \(String(describing: dataDict))")
         }
         #endif
     }
