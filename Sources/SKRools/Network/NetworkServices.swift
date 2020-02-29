@@ -32,6 +32,7 @@ public protocol NetworkService {
     typealias CompletionHandler = (Result<Data?, NetworkError>) -> Void
 
     func request(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable?
+    func localRequest(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable?
 }
 
 public protocol NetworkSessionManager {
@@ -93,9 +94,46 @@ public final class DefaultNetworkService {
         default: return .generic(error)
         }
     }
+
+    private func localRequest(request: URLRequest, completion: @escaping CompletionHandler) -> NetworkCancellable {
+          let sessionDataTask = sessionManager.request(request) { data, response, requestError in
+
+              if let requestError = requestError {
+                  var error: NetworkError
+                  if let response = response as? HTTPURLResponse {
+                      error = .error(statusCode: response.statusCode, data: data)
+                  } else {
+                      error = self.resolve(error: requestError)
+                  }
+
+                  self.logger.log(error: error)
+                  completion(.failure(error))
+              } else {
+                  self.logger.log(responseData: data, response: response)
+                  completion(.success(data))
+              }
+          }
+
+          logger.log(request: request)
+
+          return sessionDataTask
+      }
 }
 
 extension DefaultNetworkService: NetworkService {
+    public func localRequest(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable? {
+        do {
+            let url = try endpoint.url(with: config)
+            print(url.absoluteString)
+            completion(.success(nil))
+            return nil
+        } catch let error {
+            print(error)
+            //completion(.failure(NetworkError(error))
+            return nil
+        }
+    }
+
     public func request(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable? {
         do {
             let urlRequest = try endpoint.urlRequest(with: config)
