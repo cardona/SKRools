@@ -32,7 +32,6 @@ public protocol NetworkService {
     typealias CompletionHandler = (Result<Data?, NetworkError>) -> Void
 
     func request(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable?
-    func localRequest(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable?
 }
 
 public protocol NetworkSessionManager {
@@ -121,19 +120,6 @@ public final class DefaultNetworkService {
 }
 
 extension DefaultNetworkService: NetworkService {
-    public func localRequest(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable? {
-        do {
-            let url = try endpoint.url(with: config)
-            print(url.absoluteString)
-            completion(.success(nil))
-            return nil
-        } catch let error {
-            print(error)
-            //completion(.failure(NetworkError(error))
-            return nil
-        }
-    }
-
     public func request(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable? {
         do {
             let urlRequest = try endpoint.urlRequest(with: config)
