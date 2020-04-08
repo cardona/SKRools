@@ -6,24 +6,24 @@
 //  Copyright © 2020 Cardona.tv. All rights reserved.
 //
 
-import Foundation
-
-public class Box<T> {
+public final class Box<T> {
     public typealias Listener = (T) -> Void
     private var listener: Listener?
-
+    
     public var value: T {
-        didSet {
-            listener?(value)
-        }
+        didSet { execute(with: value) }
     }
-
+    
     public init(_ value: T) {
         self.value = value
     }
-
+    
     public func bind(listener: Listener?) {
         self.listener = listener
-        listener?(value)
+        execute(with: value)
+    }
+    
+    private func execute(with value: T) {
+        Thread.isMainThread ? listener?(value) : DispatchQueue.main.async { self.listener?(value) }
     }
 }
