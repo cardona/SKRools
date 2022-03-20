@@ -22,11 +22,8 @@ public protocol LocalService {
 
 // MARK: - Implementation
 public final class DefaultLocalService: LocalService {
-    private let logger: Logger
 
-    public init(logger: Logger = DefaultLogger()) {
-        self.logger = logger
-    }
+    public init() {}
 
     public func request(_ name: String?, completion: @escaping CompletionHandler) {
         guard let fileName = name else {
@@ -36,16 +33,16 @@ public final class DefaultLocalService: LocalService {
         if let path = Bundle.main.url(forResource: fileName, withExtension: "plist") {
             do {
                 let data = try Data(contentsOf: path)
-                logger.log(msg: "open file: \(fileName)", group: .filesystem, severity: .info)
+                Logger.shared.log(msg: "open file: \(fileName)", group: .filesystem, severity: .info)
                 completion(.success(data))
             } catch let error {
-                logger.log(error: error, group: .filesystem)
+                Logger.shared.log(error: error, group: .filesystem)
                 let localError = LocalError.generic(error)
                 completion(.failure(localError))
             }
         } else {
             let error = LocalError.fileNotFound(fileName)
-            logger.log(error: error, group: .filesystem)
+            Logger.shared.log(error: error, group: .filesystem)
             completion(.failure(error))
         }
     }

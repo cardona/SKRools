@@ -7,15 +7,8 @@
 
 import Foundation
 
-public enum DataTransferError: Error {
-    case noResponse
-    case parsing(Error)
-    case networkFailure(NetworkError)
-    case resolvedNetworkFailure(Error)
-}
-
 public protocol DataTransferService {
-    typealias CompletionHandler<T> = (Result<T, Error>) -> Void
+    typealias CompletionHandler<T> = (Result<T, DataTransferError>) -> Void
     
     @discardableResult
     func request<T: Decodable, E: ResponseRequestable>(with endpoint: E, completion: @escaping CompletionHandler<T>) -> NetworkCancellable? where E.Response == T
@@ -35,16 +28,13 @@ public final class DefaultDataTransferService {
     private let localService: LocalService
     private let networkService: NetworkService
     private let errorResolver: DataTransferErrorResolver
-    private let errorLogger: Logger
     
     public init(with localService: LocalService = DefaultLocalService(),
                 networkService: NetworkService = DefaultNetworkService(),
-                errorResolver: DataTransferErrorResolver = DefaultDataTransferErrorResolver(),
-                errorLogger: Logger = DefaultLogger()) {
+                errorResolver: DataTransferErrorResolver = DefaultDataTransferErrorResolver()) {
         self.localService = localService
         self.networkService = networkService
         self.errorResolver = errorResolver
-        self.errorLogger = errorLogger
     }
 }
 
@@ -54,12 +44,14 @@ extension DefaultDataTransferService: DataTransferService {
         
         return self.networkService.request(endpoint: endpoint) { result in
             switch result {
-            case .success(let data):
-                let res: Result<T, Error> = self.decode(data: data, decoder: endpoint.responseDecoder, url: endpoint.path)
+            case .success(let dataTransfer):
+                let res: Result<T, DataTransferError> = self.decode(data: dataTransfer?.data,
+                                                                    decoder: endpoint.responseDecoder,
+                                                                    url: endpoint.path,
+                                                                    code: dataTransfer?.code ?? 200)
                 return completion(res)
             case .failure(let error):
-                let error = self.resolve(networkError: error)
-                return completion(.failure(error))
+                return completion(.failure(error.dataTransferError))
             }
         }
     }
@@ -69,30 +61,32 @@ extension DefaultDataTransferService: DataTransferService {
         localService.request(endpoint.path, completion: { result  in
             switch result {
             case .success(let data):
-                let result: Result<T, Error> = self.decode(data: data, decoder: endpoint.responseDecoder, url: endpoint.path)
+                let result: Result<T, DataTransferError> = self.decode(data: data,
+                                                                       decoder: endpoint.responseDecoder,
+                                                                       url: endpoint.path,
+                                                                       code: 200)
                 return completion(result)
             case .failure(let error):
-                self.errorLogger.log(error: error, group: .filesystem)
-                return completion(.failure(error))
+                Logger.shared.log(error: error, group: .filesystem)
+                let dataTransferError = DataTransferError.localServiceFailure(msg: error.localizedDescription)
+                
+                return completion(.failure(dataTransferError))
             }
         })
     }
 
-    private func decode<T: Decodable>(data: Data?, decoder: ResponseDecoder, url: String) -> Result<T, Error> {
+    private func decode<T: Decodable>(data: Data?, decoder: ResponseDecoder, url: String, code: Int) -> Result<T, DataTransferError> {
+      
         guard let data = data else { return .failure(DataTransferError.noResponse) }
+       
         do {
             let result: T = try decoder.decode(data)
             
             return .success(result)
         } catch {
-            self.errorLogger.log(error: error, group: .networking)
+            Logger.shared.log(error: error, group: .networking)
             return .failure(DataTransferError.parsing(error))
         }
-    }
-    
-    private func resolve(networkError error: NetworkError) -> DataTransferError {
-        let resolvedError = self.errorResolver.resolve(error: error)
-        return resolvedError is NetworkError ? .networkFailure(error) : .resolvedNetworkFailure(resolvedError)
     }
 }
 

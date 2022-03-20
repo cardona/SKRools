@@ -23,22 +23,11 @@ public enum DebugGroup: String {
     case token
 }
 
-public protocol Logger {
-    func log(msg: String, group: DebugGroup, severity: DebugSeverity)
-    func log(error: Error, group: DebugGroup)
-    func log(request: URLRequest, group: DebugGroup, severity: DebugSeverity)
-    func log(response: URLResponse?, responseData data: Data?)
-    func log(response: URLResponse?, data: Data?, error: Error?, request: URLRequest, severity: DebugSeverity)
-}
-
-public final class DefaultLogger: Logger {
+final class Logger {
+    static let shared = Logger()
     
-    public init () {}
-
     private func enabledGroups() -> [DebugGroup] {
-        
         return [.networking, .filesystem, .system, .secureEnclave, .keychaing, .configuration, .token, .parse]
-
     }
     
     public func log(msg: String, group: DebugGroup, severity: DebugSeverity) {
@@ -80,14 +69,12 @@ public final class DefaultLogger: Logger {
                         }
                     }
                 }
-            case .generic(let error):
+            default:
                 text = """
                     \(text)
-                    \(error)
+                    \(networkError.localizedDescription)
                     
                 """
-            default:
-                break
             }
             
         } else {
@@ -109,7 +96,6 @@ public final class DefaultLogger: Logger {
     }
     
     public func log(request: URLRequest, group: DebugGroup, severity: DebugSeverity) {
-#if DEBUG
         
         var requestText = "\nREQUEST"
         
@@ -164,11 +150,9 @@ public final class DefaultLogger: Logger {
         """
         
         log(text: requestText, group: group, severity: severity)
-#endif
     }
     
     public func log(response: URLResponse?, data: Data?, error: Error?, request: URLRequest, severity: DebugSeverity) {
-#if DEBUG
         
         var text = "\nRESPONSE"
         
@@ -233,11 +217,9 @@ public final class DefaultLogger: Logger {
         } else {
             log(text: text, group: .networking, severity: severity)
         }
-#endif
     }
     
     public func log(response: URLResponse?, responseData data: Data?) {
-#if DEBUG
         guard let data = data else { return }
         var text = "\n"
         if let response = response as? HTTPURLResponse,
@@ -277,24 +259,24 @@ public final class DefaultLogger: Logger {
             }
             log(text: text, group: .parse, severity: .error)
         }
-#endif
     }
 }
 
 // MARK: - Logger
 
-private extension DefaultLogger {
+private extension Logger {
     private func log(text: String, group: DebugGroup, severity: DebugSeverity) {
-#if DEBUG
+
         if enabledGroups().filter({$0 == group}).first != nil {
             
             var line = addSeverityIcon(line: text, severity: severity)
             line = addGroupIcon(line: line, group: group)
             line = addDate(line: line)
-            
-            print(line)
-        }
+#if DEBUG
+            NSLog(line)
+//            print(line)
 #endif
+        }
     }
     
     private func addGroupIcon(line: String, group: DebugGroup) -> String {
@@ -344,6 +326,4 @@ private extension DefaultLogger {
         
         return "[\(result)] - \(line)"
     }
-    
 }
-

@@ -21,7 +21,7 @@ public struct ApiDataNetworkConfig: NetworkConfigurable {
     public init(baseURL: String? = nil,
                 headers: [String: String] = [:],
                 queryParameters: [String: String] = [:]) {
-        self.baseURL = baseURL ?? "CFDAPIConfig.baseURL()"
+        self.baseURL = baseURL ?? "baseURL()"
         self.headers = headers
         self.queryParameters = queryParameters
     }
