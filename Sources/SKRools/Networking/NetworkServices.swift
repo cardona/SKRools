@@ -3,7 +3,9 @@
 //  
 //
 //  Created by Oscar Cardona on 13/11/21.
+//  Copyright © 2020 Cardona.tv. All rights reserved.
 //
+
 
 import Foundation
 
@@ -109,7 +111,7 @@ public class DefaultNetworkSessionManager: NSObject, NetworkSessionManager, URLS
     public func request(_ request: URLRequest, completion: @escaping CompletionHandler) -> NetworkCancellable {
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: completion)
-//        task.delegate = self
+        if #available(iOS 15.0, *) { task.delegate = self }
         task.resume()
         
         return task

@@ -3,7 +3,9 @@
 //  
 //
 //  Created by Oscar Cardona on 13/11/21.
+//  Copyright © 2020 Cardona.tv. All rights reserved.
 //
+
 
 import Foundation
 
@@ -21,7 +23,7 @@ public struct ApiDataNetworkConfig: NetworkConfigurable {
     public init(baseURL: String? = nil,
                 headers: [String: String] = [:],
                 queryParameters: [String: String] = [:]) {
-        self.baseURL = baseURL ?? "baseURL()"
+        self.baseURL = baseURL ?? SKRoolsConfig.shared.baseURL()
         self.headers = headers
         self.queryParameters = queryParameters
     }

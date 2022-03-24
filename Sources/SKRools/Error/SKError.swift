@@ -3,7 +3,9 @@
 //  
 //
 //  Created by Oscar Cardona on 14/11/21.
+//  Copyright © 2020 Cardona.tv. All rights reserved.
 //
+
 
 import Foundation
 
@@ -29,35 +31,35 @@ extension SKError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .parseError(let msg):
-            return NSLocalizedString("[CFError] Parse Error, with msg: \(msg).", comment: "Parse error")
+            return NSLocalizedString("[SKError] Parse Error, with msg: \(msg).", comment: "Parse error")
         case .config(let msg):
-            return NSLocalizedString("[CFError] Config Error, with msg: \(msg).", comment: "Config error")
+            return NSLocalizedString("[SKError] Config Error, with msg: \(msg).", comment: "Config error")
         case .localServiceFailure(let msg):
-            return NSLocalizedString("[CFError] Local Error with msg: \(msg).", comment: "Locale error")
+            return NSLocalizedString("[SKError] Local Error with msg: \(msg).", comment: "Local Storage error")
         case .serviceTimeout:
-            return NSLocalizedString("[CFError] Service timeout.", comment: "Timeout error")
+            return NSLocalizedString("[SKError] Service timeout.", comment: "Timeout error")
         case .nonAuthorized:
-            return NSLocalizedString("[CFError] Non Authorized", comment: "Server error")
+            return NSLocalizedString("[SKError] Non Authorized", comment: "Server error")
         case .userNotVerified:
-            return NSLocalizedString("[CFError] User Not Verified", comment: "Server error")
+            return NSLocalizedString("[SKError] User Not Verified", comment: "Server error")
         case .accessDenied:
-            return NSLocalizedString("[CFError] Access Denied", comment: "Server error")
+            return NSLocalizedString("[SKError] Access Denied", comment: "Server error")
         case .notFound:
-            return NSLocalizedString("[CFError] Not Found", comment: "Server error")
+            return NSLocalizedString("[SKError] Not Found", comment: "Server error")
         case .noReponse:
-            return NSLocalizedString("[CFError] No Response", comment: "Server error")
+            return NSLocalizedString("[SKError] No Response", comment: "Server error")
         case .parsing:
-            return NSLocalizedString("[CFError] Bad Parsing", comment: "Server error")
+            return NSLocalizedString("[SKError] Bad Parsing", comment: "Parse Error")
         case .networkFailure(let msg):
-            return NSLocalizedString("[CFError] Network: \(msg)", comment: "Server error")
+            return NSLocalizedString("[SKError] Network: \(msg)", comment: "Network Error")
         case .badPassword:
-            return NSLocalizedString("[CFError] Bad Password", comment: "Server error")
+            return NSLocalizedString("[SKError] Bad Password", comment: "Server error")
         case .notConnectedToInternet:
-            return NSLocalizedString("[CFError] The device is not connected to Internet", comment: "Bad Network")
+            return NSLocalizedString("[SKError] The device is not connected to Internet", comment: "Network Error")
         case .badRequest:
-            return NSLocalizedString("[CFError] Bad Request", comment: "Bad Network")
+            return NSLocalizedString("[SKError] Bad Request", comment: "Request Error")
         case .internalServerError:
-            return NSLocalizedString("[CFError] Internal Server Error", comment: "Server Error")
+            return NSLocalizedString("[SKError] Internal Server Error", comment: "Server Error")
         }
     }
 }

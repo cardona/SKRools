@@ -1,9 +1,11 @@
 //
-//  File.swift
+//  NetworkError.swift
 //  
 //
 //  Created by Oscar Cardona on 19/3/22.
+//  Copyright © 2020 Cardona.tv. All rights reserved.
 //
+
 
 import Foundation
 
@@ -11,6 +13,8 @@ public enum NetworkError: Error {
     case error(code: Int, data: Data?, endpoint: String?)
     case emptyDataReceived
     case urlGeneration
+    case cancelled
+    case notConnectedToInternet
     
     
     public var dataTransferError: DataTransferError {
@@ -27,6 +31,10 @@ public enum NetworkError: Error {
                 let url = endpoint ?? "nil"
                 return .networkError(code: code, msg: "Unknown error: \(details) - \(url)")
             }
+        case .cancelled:
+            return .cancelled
+        case .notConnectedToInternet:
+            return .notConnectedToInternet
         }
     }
     
