@@ -1,15 +1,15 @@
 //
-//  File.swift
+//  NetworkConfigurableMock.swift
 //  
 //
-//  Created by Oscar Cardona on 24/02/2020.
+//  Created by Oscar Cardona on 24/3/22.
+//  Copyright © 2020 Cardona.tv. All rights reserved.
 //
 
-import Foundation
 @testable import SKRools
 
 class NetworkConfigurableMock: NetworkConfigurable {
-    var baseURL: URL = URL(string: "https://mock.test.com")!
+    var baseURL: String = "https://mock.com"
     var headers: [String: String] = [:]
     var queryParameters: [String: String] = [:]
 }

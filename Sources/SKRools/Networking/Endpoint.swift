@@ -1,10 +1,11 @@
 //
 //  Endpoint.swift
-//  Pattern MVVM
+//  
 //
-//  Created by Oscar Cardona on 13/02/2020.
+//  Created by Oscar Cardona on 13/11/21.
 //  Copyright © 2020 Cardona.tv. All rights reserved.
 //
+
 
 import Foundation
 
@@ -51,7 +52,8 @@ public class Endpoint<R>: ResponseRequestable {
     public var bodyParamaters: [String: Any]
     public var bodyEncoding: BodyEncoding
     public var responseDecoder: ResponseDecoder
-
+    
+    
     public init(path: String,
          isFullPath: Bool = false,
          method: HTTPMethodType = .get,
@@ -73,13 +75,14 @@ public class Endpoint<R>: ResponseRequestable {
 
 public enum RequestGenerationError: Error {
     case components
+    case baseUrl
 }
 
 public extension Requestable {
 
     func url(with config: NetworkConfigurable) throws -> URL {
 
-        let baseURL = config.baseURL.absoluteString
+        guard let baseURL = URL(string: config.baseURL)?.absoluteString else { throw RequestGenerationError.baseUrl }
 
         let endpoint = isFullPath ? path : baseURL.appending(path)
 
