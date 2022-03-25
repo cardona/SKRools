@@ -6,8 +6,6 @@
 //  Copyright © 2020 Cardona.tv. All rights reserved.
 //
 
-import Foundation
-
 public class Box<T> {
     public typealias Listener = (T) -> Void
     private var listener: Listener?
