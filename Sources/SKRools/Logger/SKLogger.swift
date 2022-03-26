@@ -25,8 +25,8 @@ public enum DebugGroup: String {
     case token
 }
 
-final class Logger {
-    static let shared = Logger()
+public class Logger {
+    public static let shared = Logger()
     
     private func enabledGroups() -> [DebugGroup] {
         return [.networking, .filesystem, .system, .secureEnclave, .keychaing, .configuration, .token, .parse]
