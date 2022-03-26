@@ -9,10 +9,10 @@
 import Foundation
 import MachO
 
-final class AntiDebugging {
-    static let shared = AntiDebugging()
+public final class AntiDebugging {
+    public static let shared = AntiDebugging()
     
-    func isDebuggerActive() -> Bool {
+    public func isDebuggerActive() -> Bool {
 #if DEBUG
         return false
 #else
