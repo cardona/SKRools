@@ -27,6 +27,10 @@ public enum SKError: Error {
     case internalServerError
     case storedData(msg: String)
     case storingData(msg: String)
+    case decryptingData(msg: String)
+    case encryptingData(msg: String)
+    case symmetricKey(msg: String)
+    case privateKey(msg: String)
 }
 
 extension SKError: LocalizedError {
@@ -66,6 +70,14 @@ extension SKError: LocalizedError {
             return NSLocalizedString("[SKError] Stored Data Error, with msg: \(msg).", comment: "Stored data")
         case .storingData(let msg):
             return NSLocalizedString("[SKError] Storing Data Error, with msg: \(msg).", comment: "Stored data")
+        case .decryptingData(let msg):
+            return NSLocalizedString("[SKError] Decrypting Data Error, with data: \(msg).", comment: "Decryption Data")
+        case .encryptingData(let msg):
+            return NSLocalizedString("[SKError] Encrypting Data Error, with data: \(msg).", comment: "Encryption Data")
+        case .symmetricKey(let msg):
+            return NSLocalizedString("[SKError] SymetricKey Error, with data: \(msg).", comment: "SymetricKey")
+        case .privateKey(let msg):
+            return NSLocalizedString("[SKError] Private Key Error, with msg: \(msg).", comment: "Private Key")
         }
     }
 }
