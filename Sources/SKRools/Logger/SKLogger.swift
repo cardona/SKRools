@@ -29,7 +29,7 @@ public class Logger {
     public static let shared = Logger()
     
     private func enabledGroups() -> [DebugGroup] {
-        return [.networking, .filesystem, .system, .secureEnclave, .keychaing, .configuration, .token, .parse]
+        return SKRoolsConfig.shared.debugGroups()
     }
     
     public func log(msg: String, group: DebugGroup, severity: DebugSeverity) {
