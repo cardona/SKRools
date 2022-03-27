@@ -25,6 +25,8 @@ public enum SKError: Error {
     case badRequest
     case notConnectedToInternet
     case internalServerError
+    case storedData(msg: String)
+    case storingData(msg: String)
 }
 
 extension SKError: LocalizedError {
@@ -60,6 +62,10 @@ extension SKError: LocalizedError {
             return NSLocalizedString("[SKError] Bad Request", comment: "Request Error")
         case .internalServerError:
             return NSLocalizedString("[SKError] Internal Server Error", comment: "Server Error")
+        case .storedData(let msg):
+            return NSLocalizedString("[SKError] Stored Data Error, with msg: \(msg).", comment: "Stored data")
+        case .storingData(let msg):
+            return NSLocalizedString("[SKError] Storing Data Error, with msg: \(msg).", comment: "Stored data")
         }
     }
 }
