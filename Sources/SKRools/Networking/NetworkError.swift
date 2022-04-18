@@ -47,6 +47,8 @@ public enum NetworkError: Error {
             return .cancelled
         case .timedOut:
             return .timedOut
+        case .unsupportedURL:
+            return .urlGeneration
         default:
             return nil
         }
