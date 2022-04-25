@@ -25,8 +25,8 @@ public enum DebugGroup: String {
     case token
 }
 
-public class Logger {
-    public static let shared = Logger()
+public class SKLogger {
+    public static let shared = SKLogger()
     
     private func enabledGroups() -> [DebugGroup] {
         return SKRoolsConfig.shared.debugGroups()
@@ -35,6 +35,25 @@ public class Logger {
     public func log(msg: String, group: DebugGroup, severity: DebugSeverity) {
         log(text: msg, group: group, severity: severity)
     }
+   
+    public func log(dataTransferError: DataTransferError, group: DebugGroup) {
+        var text = "\nERROR"
+        "
+        switch dataTransferError {
+        case .localServiceFailure(let msg):
+            break
+        case .networkError(let code, let msg):
+            break
+        case .parsing(let error):
+            break
+        default:
+            text = """
+            → [\(statusCode)] \(endpoint ?? "")
+            """
+            break
+        }
+    }
+    
     
     public func log(error: Error, group: DebugGroup) {
         var text = "\nERROR"
@@ -266,7 +285,7 @@ public class Logger {
 
 // MARK: - Logger
 
-private extension Logger {
+private extension SKLogger {
     private func log(text: String, group: DebugGroup, severity: DebugSeverity) {
 
         if enabledGroups().filter({$0 == group}).first != nil {

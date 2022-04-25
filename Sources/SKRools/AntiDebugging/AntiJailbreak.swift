@@ -78,7 +78,7 @@ final class AntiJailbreak {
         
         if !passed {
             incrementCounter()
-            Logger.shared.log(msg: "Jailbreak: \(failMessage)", group: .system, severity: .error)
+            SKLogger.shared.log(msg: "Jailbreak: \(failMessage)", group: .system, severity: .error)
         }
         return JailbreakStatus(passed: passed, failedChecks: failedChecks)
     }

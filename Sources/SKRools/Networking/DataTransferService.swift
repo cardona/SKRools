@@ -52,6 +52,8 @@ extension DefaultDataTransferService: DataTransferService {
                                                                     code: dataTransfer?.code ?? 200)
                 return completion(res)
             case .failure(let error):
+                SKLogger.shared.log(error: error, group: .networking)
+                
                 return completion(.failure(error.dataTransferError))
             }
         }
@@ -68,7 +70,7 @@ extension DefaultDataTransferService: DataTransferService {
                                                                        code: 200)
                 return completion(result)
             case .failure(let error):
-                Logger.shared.log(error: error, group: .filesystem)
+                SKLogger.shared.log(error: error, group: .filesystem)
                 let dataTransferError = DataTransferError.localServiceFailure(msg: error.localizedDescription)
                 
                 return completion(.failure(dataTransferError))
@@ -85,7 +87,7 @@ extension DefaultDataTransferService: DataTransferService {
             
             return .success(result)
         } catch {
-            Logger.shared.log(error: error, group: .networking)
+            SKLogger.shared.log(error: error, group: .networking)
             return .failure(DataTransferError.parsing(error))
         }
     }

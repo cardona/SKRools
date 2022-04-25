@@ -12,15 +12,15 @@ import Foundation
 public final class SKRoolsConfig {
     
     public static let shared = SKRoolsConfig()
-    private var currentBaseURL = "noURLBase!"
-    private var currentLoggerGroup: [DebugGroup] = [.networking,
-                                                        .filesystem,
-                                                        .system,
-                                                        .secureEnclave,
-                                                        .keychaing,
-                                                        .configuration,
-                                                        .token,
-                                                        .parse]
+    private lazy var currentBaseURL = "noURLBase!"
+    private lazy var currentLoggerGroup: [DebugGroup] = [.networking,
+                                                         .filesystem,
+                                                         .system,
+                                                         .secureEnclave,
+                                                         .keychaing,
+                                                         .configuration,
+                                                         .token,
+                                                         .parse]
     
 }
 
