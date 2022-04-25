@@ -52,7 +52,7 @@ extension DefaultDataTransferService: DataTransferService {
                                                                     code: dataTransfer?.code ?? 200)
                 return completion(res)
             case .failure(let error):
-                SKLogger.shared.log(msg: String(error.localizedDescription), group: .networking, severity: .error)
+                SKLogger.shared.log(error: error, group: .networking)
                 
                 return completion(.failure(error.dataTransferError))
             }

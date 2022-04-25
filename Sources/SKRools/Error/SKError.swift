@@ -13,6 +13,7 @@ public enum SKError: Error {
     case parseError(msg: String)
     case config(msg: String)
     case localServiceFailure(msg: String)
+    case serviceFailure(msg: String)
     case serviceTimeout
     case nonAuthorized
     case userNotVerified
@@ -78,6 +79,8 @@ extension SKError: LocalizedError {
             return NSLocalizedString("[SKError] SymetricKey Error, with data: \(msg).", comment: "SymetricKey")
         case .privateKey(let msg):
             return NSLocalizedString("[SKError] Private Key Error, with msg: \(msg).", comment: "Private Key")
+        case .serviceFailure(let msg):
+            return NSLocalizedString("[SKError] Service Error, with msg: \(msg).", comment: "Service Error")
         }
     }
 }

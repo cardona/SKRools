@@ -35,6 +35,25 @@ public class SKLogger {
     public func log(msg: String, group: DebugGroup, severity: DebugSeverity) {
         log(text: msg, group: group, severity: severity)
     }
+   
+    public func log(dataTransferError: DataTransferError, group: DebugGroup) {
+        var text = "\nERROR"
+        "
+        switch dataTransferError {
+        case .localServiceFailure(let msg):
+            break
+        case .networkError(let code, let msg):
+            break
+        case .parsing(let error):
+            break
+        default:
+            text = """
+            → [\(statusCode)] \(endpoint ?? "")
+            """
+            break
+        }
+    }
+    
     
     public func log(error: Error, group: DebugGroup) {
         var text = "\nERROR"
