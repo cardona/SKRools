@@ -62,7 +62,7 @@ extension DataTransferError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .localServiceFailure(let msg):
-            return ""
+            return "\(msg)"
         case .notConnectedToInternet:
             return ""
         case .cancelled:
@@ -75,12 +75,12 @@ extension DataTransferError: LocalizedError {
             return "Service timeout"
         case .accessDenied:
             return "Access Denied"
-        case .networkError(let code, let msg):
-            return ""
         case .noResponse:
             return "No Response"
         case .parsing(let error):
             return "Parsion error on: \(error)"
+        case .network(error: let error):
+            return "\(error.localizedDescription)"
         }
     }
 }
