@@ -50,15 +50,34 @@ extension DefaultDataTransferService: DataTransferService {
                                                                     decoder: endpoint.responseDecoder,
                                                                     url: endpoint.path,
                                                                     code: dataTransfer?.code ?? 200)
+                
                 return completion(res)
             case .failure(let error):
-                SKLogger.shared.log(error: error, group: .networking)
-                
                 return completion(.failure(error.dataTransferError))
             }
         }
     }
 
+    private func decode<T: Decodable>(data: Data?, decoder: ResponseDecoder, url: String, code: Int) -> Result<T, DataTransferError> {
+        
+        guard let data = data else { return .failure(DataTransferError.noResponse) }
+        SKLogger.shared.log(parse: data, enpoint: url)
+        do {
+            let result: T = try decoder.decode(data)
+            
+            
+            return .success(result)
+        } catch {
+            SKLogger.shared.log(parse: data, enpoint: url)
+            return .failure(DataTransferError.parsing(error))
+        }
+    }
+}
+
+
+// MARK: - Local Request
+
+extension DefaultDataTransferService {
     public func localRequest<T: Decodable, E: ResponseRequestable>(with endpoint: E, completion: @escaping CompletionHandler<T>) {
 
         localService.request(endpoint.path, completion: { result  in
@@ -70,26 +89,12 @@ extension DefaultDataTransferService: DataTransferService {
                                                                        code: 200)
                 return completion(result)
             case .failure(let error):
-                SKLogger.shared.log(error: error, group: .filesystem)
+                SKLogger.shared.log(msg: error.localizedDescription, group: .filesystem, severity: .error)
                 let dataTransferError = DataTransferError.localServiceFailure(msg: error.localizedDescription)
                 
                 return completion(.failure(dataTransferError))
             }
         })
-    }
-
-    private func decode<T: Decodable>(data: Data?, decoder: ResponseDecoder, url: String, code: Int) -> Result<T, DataTransferError> {
-      
-        guard let data = data else { return .failure(DataTransferError.noResponse) }
-       
-        do {
-            let result: T = try decoder.decode(data)
-            
-            return .success(result)
-        } catch {
-            SKLogger.shared.log(error: error, group: .networking)
-            return .failure(DataTransferError.parsing(error))
-        }
     }
 }
 

@@ -23,6 +23,9 @@ public enum DebugGroup: String {
     case system
     case filesystem
     case token
+    case alert
+    case networkingHeaders
+    case networkingBody
 }
 
 public class SKLogger {
@@ -31,73 +34,55 @@ public class SKLogger {
     private func enabledGroups() -> [DebugGroup] {
         return SKRoolsConfig.shared.debugGroups()
     }
-    
+
     public func log(msg: String, group: DebugGroup, severity: DebugSeverity) {
-        log(text: msg, group: group, severity: severity)
+        log(text: "\(msg)", group: group, severity: severity)
     }
-   
-//    public func log(dataTransferError: DataTransferError, group: DebugGroup) {
-//        var text = "\nERROR"
-//        switch dataTransferError {
-//        case .localServiceFailure(let msg):
-//            break
-//        case .parsing(let error):
-//            break
-//        default:
-//            text = """
-//            """
-//            break
-//        }
-//    }
-    
-    
-    public func log(error: Error, group: DebugGroup) {
+
+    public func log(error: Error, endpoint: String?, data: Data?, group: DebugGroup) {
         var text = "\nERROR"
         
         if let networkError = error as? NetworkError {
             switch networkError {
-            case .error(let statusCode, let data, let endpoint):
+            case .requestError, .cancelled, .urlGeneration:
                 text = """
+                Request Failure
                 \(text)
-                → [\(statusCode)] \(endpoint ?? "")
+                → \(endpoint ?? "")
+                
+                \(error.localizedDescription)
                 
                 """
-                if let data = data {
-                    if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
-                       let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
-                        text = """
-                    \(text)
-                    Data:
-                    \(String(decoding: jsonData, as: UTF8.self))
-                    
-                    """
-                    } else {
-                        text = """
-                        \(text)
-                        Bad Json:
-                        """
-                        
-                        if let errorText = String(data: data, encoding: .utf8) {
-                            text = """
-                            \(text)
-                            \(errorText)
-                            
-                            """
-                        }
-                    }
-                }
+            case .accessDenied:
+                text = """
+                Access Denied
+                \(text)
+                → \(endpoint ?? "")
+                
+                \(error.localizedDescription)
+                
+                """
+            case .notConnectedToInternet:
+                text = """
+                Not Connected to Internet
+                Check your network connection
+                \(text)
+                → \(endpoint ?? "")
+                
+                \(error.localizedDescription)
+                
+                """
             default:
                 text = """
                     \(text)
-                    \(networkError.localizedDescription)
+                    \(String(describing: networkError))
                     
                 """
             }
-            
         } else {
             text = """
                 \(text)
-                \(error.localizedDescription)
+                \(String(describing: error))
                 
             """
         }
@@ -114,7 +99,7 @@ public class SKLogger {
     
     public func log(request: URLRequest, group: DebugGroup, severity: DebugSeverity) {
         
-        var requestText = "\nREQUEST"
+        var requestText = ""
         
         if let method = request.httpMethod,
            let url = request.url {
@@ -126,6 +111,7 @@ public class SKLogger {
         
         if let fields = request.allHTTPHeaderFields,
            !fields.isEmpty,
+           enabledGroups().contains(.networkingHeaders),
            let headersData = try? JSONSerialization.data(withJSONObject: fields, options: .prettyPrinted) {
             requestText = """
             \(requestText)
@@ -136,7 +122,8 @@ public class SKLogger {
         }
         
         if let httpBody = request.httpBody, let json = try? JSONSerialization.jsonObject(with: httpBody, options: .mutableContainers),
-           let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
+           let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted),
+           enabledGroups().contains(.networkingBody) {
             var body = String(decoding: jsonData, as: UTF8.self)
             body = body.replacingOccurrences(of: "&", with: "\n")
             
@@ -148,7 +135,8 @@ public class SKLogger {
             
             """
         } else if let httpBodyData = request.httpBody,
-                  var body = String(data: httpBodyData, encoding: .utf8) {
+                  var body = String(data: httpBodyData, encoding: .utf8),
+                  enabledGroups().contains(.networkingBody) {
             body = body.replacingOccurrences(of: "&", with: "\n")
             
             requestText = """
@@ -161,17 +149,14 @@ public class SKLogger {
         }
         requestText = """
         \(requestText)
-        
-        END REQUEST
-        
         """
         
         log(text: requestText, group: group, severity: severity)
     }
     
-    public func log(response: URLResponse?, data: Data?, error: Error?, request: URLRequest, severity: DebugSeverity) {
+    public func log(response: URLResponse?, error: Error?, request: URLRequest) {
         
-        var text = "\nRESPONSE"
+        var text = ""
         
         if let response = response as? HTTPURLResponse {
             text = """
@@ -192,61 +177,33 @@ public class SKLogger {
             ‼️ \(error) ‼️
             """
         }
-        
-        if let response = response as? HTTPURLResponse,
-           response.statusCode < 600,
-           response.statusCode >= 400 {
-            if let data = data {
-                if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
-                   let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
-                    text = """
-                \(text)
-                Data:
-                \(String(decoding: jsonData, as: UTF8.self))
-                
-                """
-                } else {
-                    text = """
-                \(text)
-                Bad Json:
-                """
-                    if let errorText = String(data: data, encoding: .utf8) {
-                        text = """
-                    \(text)
-                    \(errorText)
-                    
-                    """
-                    }
-                }
-            }
-        }
-        
+    
         text = """
         \(text)
-        
-        END RESPONSE
-        
         """
         if let response = response as? HTTPURLResponse,
            response.statusCode < 600,
            response.statusCode >= 400 {
             log(text: text, group: .networking, severity: .error)
         } else {
-            log(text: text, group: .networking, severity: severity)
+            log(text: text, group: .networking, severity: .info)
         }
     }
-    
-    public func log(response: URLResponse?, responseData data: Data?) {
-        guard let data = data else { return }
+        
+    public func log(parse data: Data?, enpoint: String) {
+        guard let data = data else {
+            log(text: "Empty data", group: .parse, severity: .info)
+            return
+        }
+        
         var text = "\n"
-        if let response = response as? HTTPURLResponse,
-           let url = response.url {
-            text = """
+        
+        text = """
             \(text)
-            → \(url)
+            → \(enpoint)
             
             """
-        }
+        
         if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
            let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
             text = """
@@ -255,13 +212,7 @@ public class SKLogger {
             \(String(decoding: jsonData, as: UTF8.self))
             
             """
-            if let response = response as? HTTPURLResponse,
-               response.statusCode < 600,
-               response.statusCode >= 400 {
-                log(text: text, group: .parse, severity: .error)
-            } else {
-                log(text: text, group: .parse, severity: .info)
-            }
+            log(text: text, group: .parse, severity: .info)
         } else {
             text = """
             \(text)
@@ -315,6 +266,12 @@ private extension SKLogger {
             iconLine = "💿 [FILESYSTEM] " + iconLine
         case .token:
             iconLine = "📝 [TOKEN MANAGER] " + iconLine
+        case .alert:
+            iconLine = "🚨 [ALERT] " + iconLine
+        case .networkingHeaders:
+            iconLine = "📃 [HEADERS] " + iconLine
+        case .networkingBody:
+            iconLine = "🔋 [BODY] " + iconLine
         }
         
         return iconLine
