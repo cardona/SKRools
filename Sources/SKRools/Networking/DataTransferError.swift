@@ -10,6 +10,7 @@
 import Foundation
 
 public enum DataTransferError: Error {
+    case serviceFailure(code: Int, title: String?, detail: String?)
     case localServiceFailure(msg: String)
     case notConnectedToInternet
     case cancelled
@@ -17,7 +18,6 @@ public enum DataTransferError: Error {
     case emptyDataReceived
     case timedOut
     case accessDenied
-    case network(error: NetworkError)
     case noResponse
     case parsing(Error)
     
@@ -39,48 +39,10 @@ public enum DataTransferError: Error {
             return .networkFailure(msg: self.localizedDescription)
         case .timedOut:
             return .serviceTimeout
-        case .network(let error):
-            switch error {
-            case .error(let code, let data, let endpoint):
-                return.networkFailure(msg: "code")
-            case .urlGeneration:
-                return .badRequest
-            case .cancelled:
-                return .serviceFailure(msg: "cancel")
-            case .notConnectedToInternet:
-                return .notConnectedToInternet
-            case .requestError:
-                return .badRequest
-            }
         case .accessDenied:
             return .accessDenied
-        }
-    }
-}
-
-extension DataTransferError: LocalizedError {
-    public var errorDescription: String? {
-        switch self {
-        case .localServiceFailure(let msg):
-            return "\(msg)"
-        case .notConnectedToInternet:
-            return ""
-        case .cancelled:
-            return ""
-        case .urlGeneration:
-            return "Problems generating the url, the request has not been made"
-        case .emptyDataReceived:
-            return ""
-        case .timedOut:
-            return "Service timeout"
-        case .accessDenied:
-            return "Access Denied"
-        case .noResponse:
-            return "No Response"
-        case .parsing(let error):
-            return "Parsion error on: \(error)"
-        case .network(error: let error):
-            return "\(error.localizedDescription)"
+        case .serviceFailure(_, let title, _):
+            return .serviceFailure(msg: title ?? "unknown Error")
         }
     }
 }

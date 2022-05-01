@@ -41,41 +41,66 @@ public final class DefaultNetworkService {
     }
     
     private func request(request: URLRequest, completion: @escaping CompletionHandler) -> NetworkCancellable {
-        let sessionDataTask = sessionManager.request(request) { data, response, requestError in
-            
-            if let requestError = requestError {
-                var code: Int
-                if let response = response as? HTTPURLResponse {
-                    code = response.statusCode
-                } else {
-                    code = (requestError as NSError).code
-                }
-                let error = NetworkError.error(code: code, data: data, endpoint: request.url?.relativeString)
+        let sessionDataTask = sessionManager.request(request) { [weak self] data, response, requestError in
+            guard let self = self else {
+                SKLogger.shared.log(response: nil, error: NetworkError.requestError, request: request)
+                completion(.failure(.requestError))
+                return
+            }
+
+            let endponit = response?.url?.absoluteString ?? ""
+            if let response = response as? HTTPURLResponse,
+               response.statusCode != 200 {
+                
+                let code = response.statusCode
+                let error = self.serviceError(data: data ?? Data(), endpoint: endponit, code: code)
+                SKLogger.shared.log(error: error, endpoint: endponit, data: data, group: .networking)
+
                 completion(.failure(error))
                 
-            } else if let response = response as? HTTPURLResponse,
-                      response.statusCode < 600,
-                      response.statusCode >= 400 {
-                let error = NetworkError.error(code: response.statusCode, data: data, endpoint: request.url?.relativeString)
-                completion(.failure(error))
             } else {
+                let resp = response as? HTTPURLResponse
+                let dataTransferModel = DataTransferModel(data: data ?? Data(), code: resp?.statusCode ?? 9999)
                 
-                if let data = data,
-                   let response = response as? HTTPURLResponse {
-                    let dataTransferModel = DataTransferModel(data: data, code: response.statusCode)
-                    completion(.success(dataTransferModel))
-                } else {
-                    let resp = response as? HTTPURLResponse
-                    let dataTransferModel = DataTransferModel(data: data ?? Data(), code: resp?.statusCode ?? 9999)
-                    completion(.success(dataTransferModel))
-                }
-                SKLogger.shared.log(response: response, data: data, error: requestError, request: request, severity: .info)
+                SKLogger.shared.log(response: resp, error: requestError, request: request)
+                
+                completion(.success(dataTransferModel))
             }
         }
         
         SKLogger.shared.log(request: request, group: .networking, severity: .info)
-        
         return sessionDataTask
+    }
+    
+    private func serviceError(data: Data, endpoint: String, code: Int) -> NetworkError {
+        let decoder = JSONDecoder()
+        
+        switch code {
+        case 404:
+            return .accessDenied
+        case 400...499:
+            let msg = String(data: data, encoding: .utf8) ?? "without data"
+            var text = "\nERROR \(endpoint)"
+            text = """
+            \(text)
+            Type: Client Error
+            \(msg)
+            """
+            
+            return .serviceFailure(code: code, title: "Client Error", detail: text)
+        case 500...599:
+            let msg = String(data: data, encoding: .utf8) ?? "without data"
+            var text = "\nERROR \(endpoint)"
+            text = """
+            \(text)
+            Type: Server Error
+            \(msg)
+            """
+            
+            return .serviceFailure(code: code, title: "Server Failure", detail: "unknown error with code: \(code) ")
+        default:
+            return .serviceFailure(code: code, title: "Server Failure", detail: "unknown error with code: \(code) ")
+        }
     }
 }
 
@@ -113,7 +138,32 @@ public class DefaultNetworkSessionManager: NSObject, NetworkSessionManager, URLS
     }
     
     public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        // TODO: Enable SSL Check
         completionHandler(.performDefaultHandling, nil)
+        // TODO: Implement Cert check
+//        do {
+//            let cert = SKRoolsConfig.shared.cert()
+//            let certificates = [Data(base64Encoded: cert, options: .ignoreUnknownCharacters)]
+//
+//            if let trust = challenge.protectionSpace.serverTrust, SecTrustGetCertificateCount(trust) > 0,
+//               let trustedCertificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate] {
+//                let serverCertificatesData = Set(trustedCertificates.map { SecCertificateCopyData($0) as Data })
+//
+//                for certData in serverCertificatesData {
+//                    if certificates.contains(certData) {
+//                        completionHandler(.useCredential, URLCredential(trust: trust))
+//                        return
+//                    }
+//                }
+//            }
+//        } catch {
+//            Logger.shared.log(msg: "SSL Cancel: Local certificate could not be loaded",
+//                              group: .networking,
+//                              severity: .error)
+//        }
+//
+//        Logger.shared.log(msg: "SSL Cancel: Untrusted cert",
+//                          group: .networking,
+//                          severity: .error)
+//        completionHandler(.cancelAuthenticationChallenge, nil)
     }
 }
