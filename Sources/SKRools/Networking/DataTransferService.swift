@@ -65,10 +65,8 @@ extension DefaultDataTransferService: DataTransferService {
         do {
             let result: T = try decoder.decode(data)
             
-            
             return .success(result)
         } catch {
-            SKLogger.shared.log(parse: data, enpoint: url)
             return .failure(DataTransferError.parsing(error))
         }
     }
