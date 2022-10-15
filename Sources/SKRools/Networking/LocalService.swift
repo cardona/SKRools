@@ -35,16 +35,16 @@ public final class DefaultLocalService: LocalService {
         if let path = Bundle.main.url(forResource: fileName, withExtension: "plist") {
             do {
                 let data = try Data(contentsOf: path)
-                Logger.shared.log(msg: "open file: \(fileName)", group: .filesystem, severity: .info)
+                SKLogger.shared.log(msg: "open file: \(fileName)", group: .filesystem, severity: .info)
                 completion(.success(data))
             } catch let error {
-                Logger.shared.log(error: error, group: .filesystem)
+                SKLogger.shared.log(error: error, endpoint: nil, data: nil, group: .filesystem)
                 let localError = LocalError.generic(error)
                 completion(.failure(localError))
             }
         } else {
             let error = LocalError.fileNotFound(fileName)
-            Logger.shared.log(error: error, group: .filesystem)
+            SKLogger.shared.log(error: error, endpoint: nil, data: nil, group: .filesystem)
             completion(.failure(error))
         }
     }

@@ -11,7 +11,7 @@ import Foundation
 import UIKit
 
 public class SpinnerViewController: UIViewController {
-    var spinner = UIActivityIndicatorView(style: .whiteLarge)
+    var spinner = UIActivityIndicatorView(style: .large)
 
     override public func loadView() {
         view = UIView()

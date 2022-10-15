@@ -11,10 +11,12 @@ import Foundation
 
 public protocol DataTransferService {
     typealias CompletionHandler<T> = (Result<T, DataTransferError>) -> Void
+    typealias CompletionHandlerImage = (Result<Data, DataTransferError>) -> Void
     
     @discardableResult
     func request<T: Decodable, E: ResponseRequestable>(with endpoint: E, completion: @escaping CompletionHandler<T>) -> NetworkCancellable? where E.Response == T
     func localRequest<T: Decodable, E: ResponseRequestable>(with endpoint: E, completion: @escaping CompletionHandler<T>)
+    func requestData(url: URL, completion: @escaping CompletionHandlerImage) -> NetworkCancellable?
 }
 
 public protocol DataTransferErrorResolver {
@@ -50,13 +52,34 @@ extension DefaultDataTransferService: DataTransferService {
                                                                     decoder: endpoint.responseDecoder,
                                                                     url: endpoint.path,
                                                                     code: dataTransfer?.code ?? 200)
+                
                 return completion(res)
             case .failure(let error):
                 return completion(.failure(error.dataTransferError))
             }
         }
     }
+    
+    public func requestData(url: URL, completion: @escaping CompletionHandlerImage) -> NetworkCancellable? {
+        return self.networkService.requestData(url: url, completion: { result in
+            switch result {
+            case .success(let data):
+                if let data = data,
+                   !data.isEmpty{
+                    completion(.success(data))
+                } else {
+                    completion(.failure(DataTransferError.emptyDataReceived))
+                }
+            case .failure(let error):
+                completion(.failure(error.dataTransferError))
+            }
+        })
+    }
+}
 
+
+// MARK: - Local Request
+extension DefaultDataTransferService {
     public func localRequest<T: Decodable, E: ResponseRequestable>(with endpoint: E, completion: @escaping CompletionHandler<T>) {
 
         localService.request(endpoint.path, completion: { result  in
@@ -68,29 +91,31 @@ extension DefaultDataTransferService: DataTransferService {
                                                                        code: 200)
                 return completion(result)
             case .failure(let error):
-                Logger.shared.log(error: error, group: .filesystem)
+                SKLogger.shared.log(msg: error.localizedDescription, group: .filesystem, severity: .error)
                 let dataTransferError = DataTransferError.localServiceFailure(msg: error.localizedDescription)
                 
                 return completion(.failure(dataTransferError))
             }
         })
     }
+}
 
+
+// MARK: - Decoder
+extension DefaultDataTransferService {
     private func decode<T: Decodable>(data: Data?, decoder: ResponseDecoder, url: String, code: Int) -> Result<T, DataTransferError> {
-      
+        
         guard let data = data else { return .failure(DataTransferError.noResponse) }
-       
+        SKLogger.shared.log(parse: data, enpoint: url)
         do {
             let result: T = try decoder.decode(data)
             
             return .success(result)
         } catch {
-            Logger.shared.log(error: error, group: .networking)
             return .failure(DataTransferError.parsing(error))
         }
     }
 }
-
 
 // MARK: - Error Resolver
 public class DefaultDataTransferErrorResolver: DataTransferErrorResolver {

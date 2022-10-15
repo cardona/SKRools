@@ -10,6 +10,7 @@
 import Foundation
 
 public enum DataTransferError: Error {
+    case serviceFailure(code: Int, title: String?, detail: String?)
     case localServiceFailure(msg: String)
     case notConnectedToInternet
     case cancelled
@@ -17,7 +18,6 @@ public enum DataTransferError: Error {
     case emptyDataReceived
     case timedOut
     case accessDenied
-    case networkError(code: Int, msg: String)
     case noResponse
     case parsing(Error)
     
@@ -39,27 +39,10 @@ public enum DataTransferError: Error {
             return .networkFailure(msg: self.localizedDescription)
         case .timedOut:
             return .serviceTimeout
-        case .networkError(let code, let msg):
-            switch code {
-            case 400:
-                return.badRequest
-            case 401:
-                return .nonAuthorized
-            case 403:
-                return .accessDenied
-            case 404:
-                return .notFound
-            case 405:
-                return .nonAuthorized
-            case 408:
-                return .serviceTimeout
-            case 500:
-                return .internalServerError
-            default:
-                return .networkFailure(msg: msg)
-            }
         case .accessDenied:
             return .accessDenied
+        case .serviceFailure(_, let title, _):
+            return .serviceFailure(msg: title ?? "unknown Error")
         }
     }
 }
