@@ -17,8 +17,9 @@ extension URLSessionTask: NetworkCancellable { }
 
 public protocol NetworkService {
     typealias CompletionHandler = (Result<DataTransferModel?, NetworkError>) -> Void
-    
+    typealias CompletionHandlerImage = (Result<Data?, NetworkError>) -> Void
     func request(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable?
+    func requestData(url: URL, completion: @escaping CompletionHandlerImage) -> NetworkCancellable? 
 }
 
 public protocol NetworkSessionManager {
@@ -73,8 +74,6 @@ public final class DefaultNetworkService {
     }
     
     private func serviceError(data: Data, endpoint: String, code: Int) -> NetworkError {
-        let decoder = JSONDecoder()
-        
         switch code {
         case 404:
             return .accessDenied
@@ -113,6 +112,21 @@ extension DefaultNetworkService: NetworkService {
             completion(.failure(.urlGeneration))
             return nil
         }
+    }
+    
+    public func requestData(url: URL, completion: @escaping CompletionHandlerImage) -> NetworkCancellable? {
+        let session = URLSession(configuration: .default)
+        let downloadPicTask = session.dataTask(with: url) { (data, response, error) in
+            if error == nil,
+               let _ = response as? HTTPURLResponse {
+                completion(.success(data))
+            } else {
+                completion(.failure(NetworkError.requestError))
+            }
+        }
+        downloadPicTask.resume()
+        
+        return downloadPicTask
     }
 }
 
