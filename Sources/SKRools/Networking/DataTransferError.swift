@@ -20,6 +20,7 @@ public enum DataTransferError: Error {
     case accessDenied
     case noResponse
     case parsing(Error)
+    case notFound
     
     public var skError: SKError {
         switch self {
@@ -43,6 +44,8 @@ public enum DataTransferError: Error {
             return .accessDenied
         case .serviceFailure(_, let title, _):
             return .serviceFailure(msg: title ?? "unknown Error")
+        case .notFound:
+            return .notFound
         }
     }
 }

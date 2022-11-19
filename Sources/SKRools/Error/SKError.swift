@@ -24,6 +24,7 @@ public enum SKError: Error {
     case networkFailure(msg: String)
     case badPassword
     case badRequest
+    case badAudio
     case notConnectedToInternet
     case internalServerError
     case storedData(msg: String)
@@ -32,6 +33,9 @@ public enum SKError: Error {
     case encryptingData(msg: String)
     case symmetricKey(msg: String)
     case privateKey(msg: String)
+    case emptyData
+    case emptyHeader
+    case emptyList
 }
 
 extension SKError: LocalizedError {
@@ -81,6 +85,14 @@ extension SKError: LocalizedError {
             return NSLocalizedString("[SKError] Private Key Error, with msg: \(msg).", comment: "Private Key")
         case .serviceFailure(let msg):
             return NSLocalizedString("[SKError] Service Error, with msg: \(msg).", comment: "Service Error")
+        case .badAudio:
+            return NSLocalizedString("[SKError] Bad Audio, Audio not loaded.", comment: "Audio Error")
+        case .emptyData:
+            return NSLocalizedString("[SKError] Empty Data.", comment: "Warning")
+        case .emptyHeader:
+            return NSLocalizedString("[SKError] Empty Header Data.", comment: "Warning")
+        case .emptyList:
+            return NSLocalizedString("[SKError] Empty List Data.", comment: "Warning")
         }
     }
 }
