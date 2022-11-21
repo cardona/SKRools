@@ -19,7 +19,7 @@ public protocol NetworkService {
     typealias CompletionHandler = (Result<DataTransferModel?, NetworkError>) -> Void
     typealias CompletionHandlerImage = (Result<Data?, NetworkError>) -> Void
     func request(endpoint: Requestable, completion: @escaping CompletionHandler) -> NetworkCancellable?
-    func requestData(url: URL, completion: @escaping CompletionHandlerImage) -> NetworkCancellable? 
+    func requestData(url: URL, completion: @escaping CompletionHandlerImage) -> NetworkCancellable?
 }
 
 public protocol NetworkSessionManager {
@@ -75,8 +75,12 @@ public final class DefaultNetworkService {
     
     private func serviceError(data: Data, endpoint: String, code: Int) -> NetworkError {
         switch code {
+        case 401:
+            return .unauthorized
+        case 403:
+            return .forbidden
         case 404:
-            return .accessDenied
+            return .notFound
         case 400...499:
             let msg = String(data: data, encoding: .utf8) ?? "without data"
             var text = "\nERROR \(endpoint)"
@@ -153,10 +157,11 @@ public class DefaultNetworkSessionManager: NSObject, NetworkSessionManager, URLS
     
     public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         completionHandler(.performDefaultHandling, nil)
-        // TODO: Implement Cert check
-//        do {
-//            let cert = SKRoolsConfig.shared.cert()
-//            let certificates = [Data(base64Encoded: cert, options: .ignoreUnknownCharacters)]
+//        guard let cert = SKRoolsConfig.shared.cert() else {
+//            completionHandler(.performDefaultHandling, nil)
+//            return
+//        }
+//        if #available(iOS 15.0, *) { let certificates = [Data(base64Encoded: cert, options: .ignoreUnknownCharacters)]
 //
 //            if let trust = challenge.protectionSpace.serverTrust, SecTrustGetCertificateCount(trust) > 0,
 //               let trustedCertificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate] {
@@ -168,16 +173,12 @@ public class DefaultNetworkSessionManager: NSObject, NetworkSessionManager, URLS
 //                        return
 //                    }
 //                }
+//            } else {
+//                SKLogger.shared.log(msg: "SSL Cancel: Untrusted cert",
+//                                    group: .networking,
+//                                    severity: .error)
+//                completionHandler(.cancelAuthenticationChallenge, nil)
 //            }
-//        } catch {
-//            Logger.shared.log(msg: "SSL Cancel: Local certificate could not be loaded",
-//                              group: .networking,
-//                              severity: .error)
 //        }
-//
-//        Logger.shared.log(msg: "SSL Cancel: Untrusted cert",
-//                          group: .networking,
-//                          severity: .error)
-//        completionHandler(.cancelAuthenticationChallenge, nil)
     }
 }
