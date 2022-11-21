@@ -76,7 +76,9 @@ public final class DefaultNetworkService {
     private func serviceError(data: Data, endpoint: String, code: Int) -> NetworkError {
         switch code {
         case 401:
-            return .accessDenied
+            return .unauthorized
+        case 403:
+            return .forbidden
         case 404:
             return .notFound
         case 400...499:
