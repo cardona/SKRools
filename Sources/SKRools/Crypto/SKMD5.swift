@@ -26,9 +26,3 @@ public func MD5(string: String) -> Data {
     }
     return digestData
 }
-//
-//public func MD5(string: String) -> String {
-//    let data = MD5(string: string)
-//
-//    return  data.map { String(format: "%02hhx", $0) }.joined()
-//}

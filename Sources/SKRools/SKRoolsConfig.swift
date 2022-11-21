@@ -14,6 +14,7 @@ public final class SKRoolsConfig {
     private lazy var currentBaseURL = "noURLBase!"
     private var currentApikeyPublic: String?
     private var currentApikeyPrivate: String?
+    private var currentCert: String?
     private lazy var currentLoggerGroup: [DebugGroup] = [.networking,
                                                          .filesystem,
                                                          .system,
@@ -38,7 +39,11 @@ extension SKRoolsConfig {
     public func config(apikeyPrivate: String) {
         currentApikeyPrivate = apikeyPrivate
     }
-    
+
+    public func config(cert: String) {
+        currentCert = cert
+    }
+
     func baseURL() -> String {
         return currentBaseURL
     }
@@ -49,6 +54,10 @@ extension SKRoolsConfig {
     
     public func apikeyPrivate() -> String? {
         return currentApikeyPrivate
+    }
+
+    public func cert() -> String? {
+        return currentCert
     }
 }
 

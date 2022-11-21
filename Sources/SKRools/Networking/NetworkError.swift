@@ -16,6 +16,9 @@ public enum NetworkError: Error {
     case requestError
     case serviceFailure(code: Int, title: String?, detail: String?)
     case accessDenied
+    case notFound
+    case forbidden
+    case unauthorized
     
     public var dataTransferError: DataTransferError {
         switch self {
@@ -31,6 +34,12 @@ public enum NetworkError: Error {
             return .serviceFailure(code: code, title: title, detail: detail)
         case .accessDenied:
             return .accessDenied
+        case .notFound:
+            return .noResponse
+        case .forbidden:
+            return .forbidden
+        case .unauthorized:
+            return .unauthorized
         }
     }
 }

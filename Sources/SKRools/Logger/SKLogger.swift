@@ -26,6 +26,8 @@ public enum DebugGroup: String {
     case alert
     case networkingHeaders
     case networkingBody
+    case debug
+    case database
 }
 
 public class SKLogger {
@@ -206,10 +208,12 @@ public class SKLogger {
         
         if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
            let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
+            let string = String(decoding: jsonData, as: UTF8.self)
+            let fixed = string.replacingOccurrences(of: "\\/", with: "/")
             text = """
             \(text)
             Data:
-            \(String(decoding: jsonData, as: UTF8.self))
+            \(fixed)
             
             """
             log(text: text, group: .parse, severity: .info)
@@ -272,6 +276,10 @@ private extension SKLogger {
             iconLine = "📃 [HEADERS] " + iconLine
         case .networkingBody:
             iconLine = "🔋 [BODY] " + iconLine
+        case .debug:
+            iconLine = "🪲 [DEBUG] " + iconLine
+        case .database:
+            iconLine = "🥫 [DATABASE] " + iconLine
         }
         
         return iconLine
