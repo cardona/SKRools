@@ -8,13 +8,13 @@
 
 import Foundation
 
-enum KeychainError: Error {
+public enum KeychainError: Error {
     case retrievingSavedData(msg: String)
     case storeData(msg: String)
 }
 
 extension KeychainError: LocalizedError {
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .retrievingSavedData(let msg):
             return NSLocalizedString("[SKError] Saved Data Error, with msg: \(msg).", comment: "Saved data")
