@@ -34,7 +34,7 @@ public class SKSpinnerView: UIView {
     }
 
     private func setupView() {
-        backgroundColor = .black
+        backgroundColor = .clear
         alpha = 0.6
 
         addSubview(spinnerView)
