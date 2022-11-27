@@ -12,8 +12,8 @@ import UIKit
 import Darwin
 import MachO
 
-final class AntiJailbreak {
-    static let shared = AntiJailbreak()
+public final class AntiJailbreak {
+    public static let shared = AntiJailbreak()
     private static let honeypot = 31337
     private typealias CheckResult = (passed: Bool, failMessage: String)
     private typealias FailedCheck = (check: JailbreakCheck, failMessage: String)
@@ -33,7 +33,7 @@ final class AntiJailbreak {
         let failedChecks: [FailedCheck]
     }
     
-    func isJailbreakActive() -> Bool {
+    public func isJailbreakActive() -> Bool {
 #if DEBUG
         return false
 #else
@@ -309,7 +309,7 @@ final class AntiJailbreak {
 // MARK: - Honeypot code
 
 extension AntiJailbreak {
-    func isJailbreakActiveOnDevice() -> Bool {
+    public func isJailbreakActiveOnDevice() -> Bool {
         if isJailbreakActive() { return true }
         let num = 20226
         let text = String(num)
