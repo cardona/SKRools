@@ -48,7 +48,14 @@ public final class DefaultNetworkService {
                 completion(.failure(.requestError))
                 return
             }
-
+            if let error = requestError as? NSError {
+                if error.code == -1009 {
+                    completion(.failure(.notConnectedToInternet))
+                } else {
+                    completion(.failure(.requestError))
+                }
+                return
+            }
             let endponit = response?.url?.absoluteString ?? ""
             if let response = response as? HTTPURLResponse,
                response.statusCode != 200 {
