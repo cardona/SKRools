@@ -44,16 +44,13 @@ public final class DefaultNetworkService {
     private func request(request: URLRequest, completion: @escaping CompletionHandler) -> NetworkCancellable {
         let sessionDataTask = sessionManager.request(request) { [weak self] data, response, requestError in
             guard let self = self else {
-                SKLogger.shared.log(response: nil, error: NetworkError.requestError, request: request)
-                completion(.failure(.requestError))
+                SKLogger.shared.log(response: nil, error: NetworkError.badRequest, request: request)
+                completion(.failure(.badRequest))
                 return
             }
             if let error = requestError as? NSError {
-                if error.code == -1009 {
-                    completion(.failure(.notConnectedToInternet))
-                } else {
-                    completion(.failure(.requestError))
-                }
+                let networkError = self.networkErrorBy(code: error.code)
+                completion(.failure(networkError))
                 return
             }
             let endponit = response?.url?.absoluteString ?? ""
@@ -61,7 +58,7 @@ public final class DefaultNetworkService {
                response.statusCode != 200 {
                 
                 let code = response.statusCode
-                let error = self.serviceError(data: data ?? Data(), endpoint: endponit, code: code)
+                let error = self.networkErrorBy(code: code)
                 SKLogger.shared.log(error: error, endpoint: endponit, data: data, group: .networking)
 
                 completion(.failure(error))
@@ -79,37 +76,33 @@ public final class DefaultNetworkService {
         SKLogger.shared.log(request: request, group: .networking, severity: .info)
         return sessionDataTask
     }
-    
-    private func serviceError(data: Data, endpoint: String, code: Int) -> NetworkError {
+
+    private func networkErrorBy(code: Int) -> NetworkError {
         switch code {
+        case -1009:
+            return .notConnectedToInternet
+        case 400:
+            return .badRequest
         case 401:
             return .unauthorized
+        case 402:
+            return .paymentRequired
         case 403:
             return .forbidden
         case 404:
             return .notFound
-        case 400...499:
-            let msg = String(data: data, encoding: .utf8) ?? "without data"
-            var text = "\nERROR \(endpoint)"
-            text = """
-            \(text)
-            Type: Client Error
-            \(msg)
-            """
-            
-            return .serviceFailure(code: code, title: "Client Error", detail: text)
-        case 500...599:
-            let msg = String(data: data, encoding: .utf8) ?? "without data"
-            var text = "\nERROR \(endpoint)"
-            text = """
-            \(text)
-            Type: Server Error
-            \(msg)
-            """
-            
-            return .serviceFailure(code: code, title: "Server Failure", detail: "unknown error with code: \(code) ")
+        case 405:
+            return .methodNotAllowed
+        case 406:
+            return .notAcceptable
+        case 407:
+            return .proxyAuthenticationRequired
+        case 408:
+            return .requestTimeout
+        case 409..<599:
+            return .internalServerError
         default:
-            return .serviceFailure(code: code, title: "Server Failure", detail: "unknown error with code: \(code) ")
+            return .unknown
         }
     }
 }
@@ -120,7 +113,7 @@ extension DefaultNetworkService: NetworkService {
             let urlRequest = try endpoint.urlRequest(with: config)
             return request(request: urlRequest, completion: completion)
         } catch {
-            completion(.failure(.urlGeneration))
+            completion(.failure(.badRequest))
             return nil
         }
     }
@@ -132,7 +125,7 @@ extension DefaultNetworkService: NetworkService {
                let _ = response as? HTTPURLResponse {
                 completion(.success(data))
             } else {
-                completion(.failure(NetworkError.requestError))
+                completion(.failure(NetworkError.badRequest))
             }
         }
         downloadPicTask.resume()

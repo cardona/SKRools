@@ -72,7 +72,7 @@ class NetworkServiceTests: XCTestCase {
                 _ = try result.get()
                 XCTFail("Should throw url generation error")
             } catch let error {
-                guard case NetworkError.urlGeneration = error else {
+                guard case NetworkError.badRequest = error else {
                     XCTFail("Should throw url generation error")
                     return
                 }
@@ -95,23 +95,63 @@ class NetworkServiceTests: XCTestCase {
                                        statusCode: 500,
                                        httpVersion: "1.1",
                                        headerFields: [:])
-        let session = NetworkSessionManagerMock(response: response, data: nil, error: NetworkErrorMock.someError)
+        let session = NetworkSessionManagerMock(response: response, data: nil, error: nil)
         let sut = DefaultNetworkService(config: config, sessionManager: session)
         
         // WHEN
         _ = sut.request(endpoint: EndpointMock(path: "http://mock.com", method: .get)) { result in
-            do {
-                _ = try result.get()
-                XCTFail("Should not happen")
-            } catch let error {
-//                if case NetworkError.error(let statusCode, _, _) = error {
-//                    XCTAssertEqual(statusCode, 500)
-//                    expectation.fulfill()
-//                }
+
+            switch result {
+            case .success(let model):
+                XCTAssertNil(model)
+                XCTFail("just send the error")
+            case .failure(let error):
+                switch error {
+                case .internalServerError:
+                    break
+                default:
+                    XCTFail("expected internal server error")
+                }
             }
+            expectation.fulfill()
         }
         
         // THEN
         wait(for: [expectation], timeout: 0.1)
     }
+
+    func test_whenEmptyDataReceived_shouldReturnhasStatusCodeError() {
+
+        // GIVEN
+        let config = NetworkConfigurableMock()
+        let expectation = self.expectation(description: "Should return hasStatusCode error")
+
+        let response = HTTPURLResponse(url: URL(string: "test_url")!,
+                                       statusCode: 200,
+                                       httpVersion: "1.1",
+                                       headerFields: [:])
+        let session = NetworkSessionManagerMock(response: response, data: Data(), error: nil)
+        let sut = DefaultNetworkService(config: config, sessionManager: session)
+
+        // WHEN
+        _ = sut.request(endpoint: EndpointMock(path: "http://mock.com", method: .get)) { result in
+
+            switch result {
+            case .success(let model):
+                XCTAssertNotNil(model)
+            case .failure(let error):
+                switch error {
+                case .methodNotAllowed:
+                    break
+                default:
+                    XCTFail("expected internal server error")
+                }
+            }
+            expectation.fulfill()
+        }
+
+        // THEN
+        wait(for: [expectation], timeout: 0.1)
+    }
+
 }
