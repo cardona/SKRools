@@ -35,6 +35,10 @@ ViewModel
 import SKRools
 
 var itemsListModel: Box<CoinsListModel?> = Box(nil)
+
+func coinsList() {
+	itemsListModel.value = model
+}
 ```
 
 View   
@@ -51,7 +55,7 @@ viewModel.itemsListModel.bind { [weak self] model in
 
 
 ## Coordinator
-The definition of a basic coordinator protocol
+The definition of a basic coordinator protocol    
 Allows the management of the navigation of the views
 
 
@@ -98,7 +102,7 @@ let text = try? crypto?.decrypt(data: data, key: key) as? String
 
 
 ## Keychain
-Store and load data from keychain more easy
+Store and load data from keychain more easy.   
 
 
 ```swift
@@ -108,17 +112,17 @@ private let keychain: SKKeychain = DefaultSKKeychain()
 
 
 // Save Data
-try keychain?.save(data, forKey: key.rawValue)
+try keychain?.save(data, forKey: "yourKey")
 
 // Load Data
-try keychain?.loadData(withKey: key.rawValue)
+try keychain?.loadData(withKey: "yourKey")
 ```
 
 
 
 ## Networking
-Everything you need to work with REST API
-Simple, practical and easy to test
+Everything you need to work with REST API.   
+Simple, practical and easy to test.    
 
 ```swift
 import SKRools
@@ -142,7 +146,8 @@ func request(parameters: CoinsListRepositoryParameters, completion: @escaping (R
 
 ## Logger
 
-Log in your app with groups, icons and severity. Disable or enable any log group when you want.
+Log in your app with groups, icons and severity.   
+Disable or enable any log group when you want.
 
 
 ```swift
@@ -154,11 +159,11 @@ SKLogger.shared.log(msg: "Secure Enclave is available ", group: .secureEnclave, 
 
 ### Example projects
 
-#### Cryptocompare
+#### Cryptocompare [here] (https://github.com/cardona/Cryptocompare)
 A clean architecture MVVM implementation using the SKRools package
 It uses the cryptocompare.com api to download the list of coins without a price, more than 8,000, and through another endpoint it sets the price for the coins.
 Use CoreData as cache
 
-#### MVVM
+#### MVVM [here] (https://github.com/cardona/MVVM)
 Another clean architecture MVVM implementation using the SKRools package
 Use marvel.com api to download marvel character list
