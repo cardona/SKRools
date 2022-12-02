@@ -162,10 +162,10 @@ SKLogger.shared.log(msg: "Secure Enclave is available ", group: .secureEnclave, 
 #### Cryptocompare 
 A clean architecture MVVM implementation using the SKRools package
 It uses the cryptocompare.com api to download the list of coins without a price, more than 8,000, and through another endpoint it sets the price for the coins.
-Use CoreData as cache
+Use CoreData as cache.   
 [Code here](https://github.com/cardona/Cryptocompare).
 
 #### MVVM 
 Another clean architecture MVVM implementation using the SKRools package
-Use marvel.com api to download marvel character list
+Use marvel.com api to download marvel character list.   
 [Code here](https://github.com/cardona/MVVM).
