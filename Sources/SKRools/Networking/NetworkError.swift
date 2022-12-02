@@ -10,36 +10,47 @@
 import Foundation
 
 public enum NetworkError: Error {
-    case urlGeneration
-    case cancelled
+    case unknown
     case notConnectedToInternet
-    case requestError
-    case serviceFailure(code: Int, title: String?, detail: String?)
-    case accessDenied
-    case notFound
-    case forbidden
+    // 400
+    case badRequest
+    // 401
     case unauthorized
+    // 402
+    case paymentRequired
+    // 403
+    case forbidden
+    // 404
+    case notFound
+    // 405
+    case methodNotAllowed
+    // 406
+    case notAcceptable
+    // 407
+    case proxyAuthenticationRequired
+    // 408
+    case requestTimeout
+    // 500
+    case internalServerError
     
     public var dataTransferError: DataTransferError {
         switch self {
-        case .urlGeneration:
-            return .urlGeneration
-        case .cancelled:
-            return .cancelled
+        case .unknown:
+            return .internalServerError
         case .notConnectedToInternet:
             return .notConnectedToInternet
-        case .requestError:
-            return .urlGeneration
-        case .serviceFailure(code: let code, title: let title, detail: let detail):
-            return .serviceFailure(code: code, title: title, detail: detail)
-        case .accessDenied:
+        case .badRequest:
+            return .badRequest
+        case .unauthorized, .paymentRequired, .forbidden, .notAcceptable, .proxyAuthenticationRequired:
             return .accessDenied
         case .notFound:
-            return .noResponse
-        case .forbidden:
-            return .forbidden
-        case .unauthorized:
-            return .unauthorized
+            return .notFound
+        case .methodNotAllowed:
+            return .methodNotAllowed
+        case .requestTimeout:
+            return .timedOut
+        case .internalServerError:
+            return .internalServerError
         }
     }
 }

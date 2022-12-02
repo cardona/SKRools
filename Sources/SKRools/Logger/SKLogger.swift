@@ -46,7 +46,7 @@ public class SKLogger {
         
         if let networkError = error as? NetworkError {
             switch networkError {
-            case .requestError, .cancelled, .urlGeneration:
+            case .badRequest:
                 text = """
                 Request Failure
                 \(text)
@@ -55,7 +55,7 @@ public class SKLogger {
                 \(error.localizedDescription)
                 
                 """
-            case .accessDenied:
+            case .forbidden:
                 text = """
                 Access Denied
                 \(text)
