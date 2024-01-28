@@ -59,7 +59,7 @@ public final class DefaultNetworkService {
                 
                 let code = response.statusCode
                 let error = self.networkErrorBy(code: code)
-                SKLogger.shared.log(error: error, endpoint: endponit, data: data, group: .networking)
+                SKLogger.shared.log(error: error, endpoint: endponit, group: .networking)
 
                 completion(.failure(error))
                 
@@ -73,7 +73,7 @@ public final class DefaultNetworkService {
             }
         }
         
-        SKLogger.shared.log(request: request, group: .networking, severity: .info)
+        SKLogger.shared.log(request: request, severity: .info)
         return sessionDataTask
     }
 
@@ -145,40 +145,46 @@ public class NetworkTask: NetworkCancellable {
 }
 
 public class DefaultNetworkSessionManager: NSObject, NetworkSessionManager, URLSessionTaskDelegate {
-    public override init() {super.init()}
+    private let session: URLSession
+    
+    public override init() {
+        let configuration = URLSessionConfiguration.default
+        self.session = URLSession(configuration: configuration)
+        super.init()
+    }
+    
     public func request(_ request: URLRequest, completion: @escaping CompletionHandler) -> NetworkCancellable {
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: completion)
+        let task = session.dataTask(with: request, completionHandler: completion)
         if #available(iOS 15.0, *) { task.delegate = self }
         task.resume()
-        
         return task
     }
     
     public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         completionHandler(.performDefaultHandling, nil)
-//        guard let cert = SKRoolsConfig.shared.cert() else {
-//            completionHandler(.performDefaultHandling, nil)
-//            return
-//        }
-//        if #available(iOS 15.0, *) { let certificates = [Data(base64Encoded: cert, options: .ignoreUnknownCharacters)]
-//
-//            if let trust = challenge.protectionSpace.serverTrust, SecTrustGetCertificateCount(trust) > 0,
-//               let trustedCertificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate] {
-//                let serverCertificatesData = Set(trustedCertificates.map { SecCertificateCopyData($0) as Data })
-//
-//                for certData in serverCertificatesData {
-//                    if certificates.contains(certData) {
-//                        completionHandler(.useCredential, URLCredential(trust: trust))
-//                        return
-//                    }
-//                }
-//            } else {
-//                SKLogger.shared.log(msg: "SSL Cancel: Untrusted cert",
-//                                    group: .networking,
-//                                    severity: .error)
-//                completionHandler(.cancelAuthenticationChallenge, nil)
-//            }
-//        }
+        let cert = SKRoolsConfig.shared.networkCertificate
+        guard !cert.isEmpty else {
+            completionHandler(.performDefaultHandling, nil)
+            return
+        }
+        if #available(iOS 15.0, *) { let certificates = [Data(base64Encoded: cert, options: .ignoreUnknownCharacters)]
+
+            if let trust = challenge.protectionSpace.serverTrust, SecTrustGetCertificateCount(trust) > 0,
+               let trustedCertificates = SecTrustCopyCertificateChain(trust) as? [SecCertificate] {
+                let serverCertificatesData = Set(trustedCertificates.map { SecCertificateCopyData($0) as Data })
+
+                for certData in serverCertificatesData {
+                    if certificates.contains(certData) {
+                        completionHandler(.useCredential, URLCredential(trust: trust))
+                        return
+                    }
+                }
+            } else {
+                SKLogger.shared.log(msg: "SSL Cancel: Untrusted cert",
+                                    group: .networking,
+                                    severity: .error)
+                completionHandler(.cancelAuthenticationChallenge, nil)
+            }
+        }
     }
 }
