@@ -27,18 +27,18 @@ public final class DefaultSKKeychain: SKKeychain {
         if SecItemCopyMatching(query, nil) == noErr {
             if let dictData = data {
                 SecItemUpdate(query, NSDictionary(dictionary: [kSecValueData: dictData]))
-                SKLogger.shared.log(msg: "Keychain Update Value for key: \(key)", group: .keychaing, severity: .info)
+                SKLogger.shared.log(msg: "Keychain Update Value for key: \(key)", group: .keychain, severity: .info)
             } else {
                 SecItemDelete(query)
-                SKLogger.shared.log(msg: "Keychain Delete Value for key: \(key)", group: .keychaing, severity: .info)
+                SKLogger.shared.log(msg: "Keychain Delete Value for key: \(key)", group: .keychain, severity: .info)
             }
         } else {
             if let dictData = data {
                 query.setValue(dictData, forKey: kSecValueData as String)
                 SecItemAdd(query, nil)
-                SKLogger.shared.log(msg: "Keychain Update Value for key: \(key)", group: .keychaing, severity: .info)
+                SKLogger.shared.log(msg: "Keychain Update Value for key: \(key)", group: .keychain, severity: .info)
             } else {
-                SKLogger.shared.log(msg: "Keychain Store data error with key: \(key)", group: .keychaing, severity: .error)
+                SKLogger.shared.log(msg: "Keychain Store data error with key: \(key)", group: .keychain, severity: .error)
                 throw SKError.storingData(msg: "Keychain")
             }
         }
@@ -62,10 +62,10 @@ public final class DefaultSKKeychain: SKKeychain {
             let resultsData = resultsDict.value(forKey: kSecValueData as String) as? Data,
             status == noErr
         else {
-            SKLogger.shared.log(msg: "Keychain Load error with key: \(key)", group: .keychaing, severity: .error)
+            SKLogger.shared.log(msg: "Keychain Load error with key: \(key)", group: .keychain, severity: .error)
             throw SKError.storedData(msg: "Keychain error for key: \(key)")
         }
-        SKLogger.shared.log(msg: "Decrypt key: \(key)", group: .keychaing, severity: .info)
+        SKLogger.shared.log(msg: "Decrypt key: \(key)", group: .keychain, severity: .info)
         return resultsData
     }
     
