@@ -23,7 +23,7 @@ public struct ApiDataNetworkConfig: NetworkConfigurable {
     public init(baseURL: String? = nil,
                 headers: [String: String] = [:],
                 queryParameters: [String: String] = [:]) {
-        self.baseURL = baseURL ?? SKRoolsConfig.shared.baseURL()
+        self.baseURL = baseURL ?? SKRoolsConfig.shared.networkBaseURL
         self.headers = headers
         self.queryParameters = queryParameters
     }

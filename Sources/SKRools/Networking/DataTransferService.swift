@@ -1,6 +1,6 @@
 //
 //  DataTransferService.swift
-//  
+//
 //
 //  Created by Oscar Cardona on 13/11/21.
 //  Copyright © 2020 Cardona.tv. All rights reserved.
@@ -81,7 +81,7 @@ extension DefaultDataTransferService: DataTransferService {
 // MARK: - Local Request
 extension DefaultDataTransferService {
     public func localRequest<T: Decodable, E: ResponseRequestable>(with endpoint: E, completion: @escaping CompletionHandler<T>) {
-
+        
         localService.request(endpoint.path, completion: { result  in
             switch result {
             case .success(let data):
@@ -106,7 +106,7 @@ extension DefaultDataTransferService {
     private func decode<T: Decodable>(data: Data?, decoder: ResponseDecoder, url: String, code: Int) -> Result<T, DataTransferError> {
         
         guard let data = data else { return .failure(DataTransferError.noResponse) }
-        SKLogger.shared.log(parse: data, enpoint: url)
+        SKLogger.shared.log(parse: data, endpoint: url)
         do {
             let result: T = try decoder.decode(data)
             

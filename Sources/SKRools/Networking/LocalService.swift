@@ -18,8 +18,7 @@ public enum LocalError: Error {
 public protocol LocalService {
     typealias CompletionHandler = (Result<Data?, LocalError>) -> Void
 
-    func request(_ name: String?,
-                 completion: @escaping CompletionHandler)
+    func request(_ name: String?, completion: @escaping CompletionHandler)
 }
 
 // MARK: - Implementation
@@ -38,13 +37,13 @@ public final class DefaultLocalService: LocalService {
                 SKLogger.shared.log(msg: "open file: \(fileName)", group: .filesystem, severity: .info)
                 completion(.success(data))
             } catch let error {
-                SKLogger.shared.log(error: error, endpoint: nil, data: nil, group: .filesystem)
+                SKLogger.shared.log(error: error, endpoint: nil, group: .filesystem)
                 let localError = LocalError.generic(error)
                 completion(.failure(localError))
             }
         } else {
             let error = LocalError.fileNotFound(fileName)
-            SKLogger.shared.log(error: error, endpoint: nil, data: nil, group: .filesystem)
+            SKLogger.shared.log(error: error, endpoint: nil, group: .filesystem)
             completion(.failure(error))
         }
     }

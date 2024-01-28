@@ -17,11 +17,24 @@ public protocol SKCrypto {
     func decrypt(data: Data, key: SymmetricKey) throws -> Any?
 }
 
+/// `DefaultSKCrypto` is a class that implements the `SKCrypto` protocol to provide encryption and decryption functionalities using the Secure Enclave on compatible Apple devices. It utilizes the Secure Enclave to generate and store a private key securely and uses this key to create a symmetric key for encryption and decryption.
+///
+/// Usage:
+/// 1. Create an instance of `DefaultSKCrypto`.
+/// 2. Use `createPrivateKey()` to generate a new private key in the Secure Enclave.
+/// 3. Use `symmetricKey()` to retrieve the symmetric key derived from the private key.
+/// 4. Encrypt or decrypt data using `encrypt(text:key:)` and `decrypt(data:key:)`.
+///
+/// Note:
+/// - The class checks whether the Secure Enclave is available and falls back to a hardcoded key if not.
+/// - The class also checks if it's running on a simulator, where the Secure Enclave is not available.
 public final class DefaultSKCrypto: SKCrypto {
     public init() {}
     private static let keychainKeyPrivateKey = "skKeychainKeyPrivateKey"
     private let keychain: SKKeychain = DefaultSKKeychain()
     
+    /// Generates a new private key and stores it in the Secure Enclave, if available.
+    /// - Throws: `SKError.privateKey` if there is an error in creating the private key.
     public func createPrivateKey() throws {
  
         if SecureEnclave.isAvailable && !isSimulator() {
@@ -50,6 +63,9 @@ public final class DefaultSKCrypto: SKCrypto {
         }
     }
     
+    /// Retrieves the symmetric key derived from the private key stored in the Secure Enclave.
+    /// - Returns: A `SymmetricKey` derived from the private key.
+    /// - Throws: `SKError.symmetricKey` if there is an error in retrieving or deriving the symmetric key.
     public func symmetricKey() throws -> SymmetricKey {
         if SecureEnclave.isAvailable && !isSimulator() {
             let dataRepresentation = try keychain.loadData(withKey: DefaultSKCrypto.keychainKeyPrivateKey)
@@ -85,6 +101,12 @@ public final class DefaultSKCrypto: SKCrypto {
 // MARK: Encryption / Decryption
 
 extension DefaultSKCrypto {
+    /// Encrypts the given text using the provided symmetric key.
+    /// - Parameters:
+    ///   - text: The text to be encrypted.
+    ///   - key: The symmetric key to use for encryption.
+    /// - Returns: An optional `Data` object representing the encrypted text.
+    /// - Throws: `SKError.encryptingData` if there is an error during encryption.
    public func encrypt(text: String, key: SymmetricKey) throws -> Data? {
         guard
             let data = text.data(using: .utf8),
@@ -101,8 +123,14 @@ extension DefaultSKCrypto {
         SKLogger.shared.log(msg: "Encrypted data: \(dataString ?? "")", group: .secureEnclave, severity: .info)
         
         return sealedBox.combined
-    }
+   }
     
+    /// Decrypts the given data using the provided symmetric key.
+    /// - Parameters:
+    ///   - data: The data to be decrypted.
+    ///   - key: The symmetric key to use for decryption.
+    /// - Returns: An optional decrypted string.
+    /// - Throws: `SKError.decryptingData` if there is an error during decryption.
     public func decrypt(data: Data, key: SymmetricKey) throws -> Any? {
         let dataString = data.withUnsafeBytes {
             return Data(Array($0)).base64EncodedString()
